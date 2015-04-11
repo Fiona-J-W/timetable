@@ -5,12 +5,14 @@ module lesson;
 
 import
 	std.algorithm,
-	std.array, 
-	std.conv, 
-	std.datetime, 
-	std.exception, 
-	std.stdio, 
-	std.string;
+	std.array,
+	std.conv,
+	std.datetime,
+	std.exception,
+	std.stdio,
+	std.string,
+	std.typecons;
+
 
 /**
  * Error that indicates an invalid formatstring
@@ -24,6 +26,8 @@ class InvalidArgumentError : Exception{
 		super(msg, file, line, next);
 	}
 };
+
+
 
 /**
  * A lesson
@@ -122,7 +126,7 @@ class Lesson{
 };
 
 /**
- * returns whether this Lesson  earlier than another lesson l2
+ * returns whether this Lesson is earlier than another lesson l2
  */
 bool isEarlier(in Lesson l1, in Lesson l2){
 	if(l1.day < l2.day){
@@ -163,6 +167,21 @@ class InvalidConfigFileError : Exception{
 	}
 };
 
+auto blockToTimes(uint block) {
+	TimeOfDay start;
+	switch (block) {
+		case 1: start = TimeOfDay(8,   0); break;
+		case 2: start = TimeOfDay(9,  45); break;
+		case 3: start = TimeOfDay(11, 30); break;
+		case 4: start = TimeOfDay(14,  0); break;
+		case 5: start = TimeOfDay(15, 45); break;
+		case 6: start = TimeOfDay(17, 30); break;
+		default: throw new InvalidConfigFileError("Invalid Block");
+	}
+	auto end = start + dur!"minutes"(90);
+	return tuple(start, end);
+}
+
 /**
  * reads in lessons from a configfile.
  * 
@@ -175,11 +194,7 @@ class InvalidConfigFileError : Exception{
  * Returns:
  *   An unsorted list of all Lessons defined in the configfile
  */
-Lesson[] readLessons(string filename)
-out(result){
-	assert(isSorted!(isEarlier)(result));
-}
-body{
+Lesson[] readLessons(string filename){
 	auto file = File(filename,"r");
 	Lesson[] returnlist;
 	uint lineNumber = 0;
@@ -197,6 +212,7 @@ body{
 			continue;
 		}
 		string line = strip( to!string(buffer) );
+		debug writefln("reading line %s: “%s”", lineNumber, line);
 		if( !line.length || line[0] == '#' ){
 			continue;
 		}
@@ -250,6 +266,11 @@ body{
 				break;
 			case "end":
 				endTime = TimeOfDay.fromISOExtString(val);
+				break;
+			case "block":
+				auto timeRange = blockToTimes(to!uint(val));
+				startTime = timeRange[0];
+				endTime = timeRange[1];
 				break;
 			default:
 				stderr.writefln("WARNING: Unknown key in configfile (“%s”, %s): “%s” (with value “%s”)",

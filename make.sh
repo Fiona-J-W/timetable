@@ -26,3 +26,4 @@ if test ! -d "doc"; then
 fi
 
 dmd -D -Dddoc -odbuild $ARGS src/*.d $LIBS -oftimetable 
+#ldc2 -D -Dd=doc -od=build $ARGS src/*.d $LIBS -of=timetable 

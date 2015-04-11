@@ -46,7 +46,7 @@ void printQuery(Lesson[] lessons, QueryType type, string formatstring, DayOfWeek
 		case QueryType.tomorow:
 			weekday = cast(DayOfWeek)((weekday + 1) % 6);
 			foreach(l; lessons){
-				if ( weekday == l.getDay ){
+				if ( weekday == l.getDay() ){
 					filteredLessons ~= l;
 				}
 			}
@@ -55,11 +55,12 @@ void printQuery(Lesson[] lessons, QueryType type, string formatstring, DayOfWeek
 			filteredLessons = lessons;
 			break;
 		case QueryType.next:
-			for(int i=0; i<lessons.length; ++i){
-				if(lessons[i].getStart() >= to!TimeOfDay(time)
-					&& !lessons[i].getDay() < weekday
-				){
-					filteredLessons ~= lessons[i];
+			foreach(l; lessons){
+				if( l.getDay() < weekday ){
+					continue;
+				}
+				if( l.getStart() >= to!TimeOfDay(time) ){
+					filteredLessons ~= l;
 					break;
 				}
 			}
